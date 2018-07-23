@@ -51,8 +51,8 @@ def compare_distributions(data1, data2, n_channels, title = ''):
     """
     plt.figure()
     plt.title(title)
-    plt.plot(np.arange(n_channels), data1.mean(axis=0), 'bo-', label = 'interictal')
-    plt.plot(np.arange(n_channels), data2.mean(axis=0), 'ro-', label = 'preictal')
+    plt.plot(np.arange(n_channels), np.median(data1, axis=0), 'bo-', label = 'interictal (median)')
+    plt.plot(np.arange(n_channels), np.median(data2, axis=0), 'ro-', label = 'preictal (median)')
     plt.legend()
 
 

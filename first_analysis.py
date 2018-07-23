@@ -16,12 +16,16 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # ALL_FILES = True
 
 
-subject               = 'Patient_2'
-interictal_files_idx  = np.arange(1, 7)
-preictal_files_idx    = list(range(13,19))
+subject               = 'Dog_3'
+interictal_files_idx  = np.arange(20, 30)
+preictal_files_idx    = list(range(1,18))
 n_channels            = 15
 ALL_FILES = True
 
+s_freq  = 399.609756
+fmin    = 0.2
+fmax    = 2      
+j1,j2   = utils.get_scales(s_freq, fmin, fmax)
 
 # interictal_files_idx  = np.arange(30, 32)
 # preictal_files_idx    = np.arange(10, 12)
@@ -34,8 +38,8 @@ ALL_FILES = True
 mfa = mf.MFA()
 mfa.wt_name = 'db3'
 mfa.p = np.inf
-mfa.j1 = 6      # [11, 15] for low freqs,  [5, 9] for [8, 230] Hz,  [6, 9] for [8, 100] Hz
-mfa.j2 = 9
+mfa.j1 = j1      # [11, 15] for low freqs,  [5, 9] for [8, 230] Hz,  [6, 9] for [8, 100] Hz
+mfa.j2 = j2
 mfa.q = [2]#np.arange(-8, 9)
 mfa.n_cumul = 3
 mfa.gamint = 1
@@ -74,6 +78,8 @@ if ALL_FILES:
     c1_inter = np.zeros((len(interictal_files_idx), n_channels))
     c2_inter = np.zeros((len(interictal_files_idx), n_channels))
 
+    cumulants_interictal = [0 for i in range(n_channels)]
+
     for ii, file_idx in enumerate(interictal_files_idx):
         interictal_data = utils.get_interictal_data(file_idx, subject)['data']
         for channel in range(n_channels):
@@ -85,10 +91,11 @@ if ALL_FILES:
             c2_inter[ii, channel] = cp[1]
 
             print("----------------- interictal", channel)
-            if channel == 0 and ii == 0:
-                cumulants_interictal = mfa.cumulants
+
+            if ii == 0:
+                cumulants_interictal[channel] = mfa.cumulants
             else:
-                cumulants_interictal.sum(mfa.cumulants)
+                cumulants_interictal[channel].sum(mfa.cumulants)
 
 
     #------------------------------------------------------------------------
@@ -97,6 +104,8 @@ if ALL_FILES:
 
     c1_pre = np.zeros((len(preictal_files_idx), n_channels))
     c2_pre = np.zeros((len(preictal_files_idx), n_channels))
+
+    cumulants_preictal = [0 for i in range(n_channels)]
 
     for ii, file_idx in enumerate(preictal_files_idx):
         preictal_data = utils.get_preictal_data(file_idx, subject)['data']
@@ -112,14 +121,11 @@ if ALL_FILES:
 
             print("----------------- preictal", channel)
 
-            if channel == 0 and ii == 0:
-                cumulants_preictal = mfa.cumulants
+            if ii == 0:
+                cumulants_preictal[channel] = mfa.cumulants
             else:
-                cumulants_preictal.sum(mfa.cumulants)
+                cumulants_preictal[channel].sum(mfa.cumulants)
 
-
-    cumulants_interictal.plot('interictal')
-    cumulants_preictal.plot('preictal')
 
     utils.compare_distributions(c1_inter, c1_pre, n_channels, 'c1 interictal vs. preictal')
     utils.compare_distributions(c2_inter, c2_pre, n_channels, 'c2 interictal vs. preictal')
@@ -127,5 +133,11 @@ if ALL_FILES:
 
     utils.plot_cumulant_time_evolution(c1_inter, c2_inter, title = 'interictal')
     utils.plot_cumulant_time_evolution(c1_pre, c2_pre, title = 'preictal')
+
+
+    for ii in range(n_channels):
+        cumulants_interictal[ii].plot('interictal, channel %d'%ii)
+        cumulants_preictal[ii].plot('preictal, channel %d'%ii)
+        plt.show()
 
     plt.show()
