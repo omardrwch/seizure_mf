@@ -3,6 +3,8 @@ from scipy.io import loadmat
 import matplotlib.pyplot as plt
 import os
 from scipy.signal import welch
+import config as cfg
+import h5py
 
 def get_scales(fs, min_f, max_f):
     """
@@ -87,4 +89,66 @@ def plot_spectrum(signal, fs, nperseg = 1024):
     plt.loglog(f, np.sqrt(Pxx_spec))
     plt.xlabel(' (log) frequency [Hz]')
     plt.ylabel(' (log) Power [V RMS]')
-    
+
+
+
+
+def load_classif_data(subject, options):
+
+    # Setup
+    p_idx = options['p_idx']
+    features  = options['features'] # e.g, ['c1', 'c2'], elements should be
+                                    # in ['hurst', 'c1', 'c2', 'c3', 'c4']
+
+    interictal_files_idx = cfg.info[subject]['interictal_files_idx']
+    preictal_files_idx  = cfg.info[subject]['preictal_files_idx']
+    n_interictal        = len(interictal_files_idx)
+    n_preictal          = len(preictal_files_idx)
+    n_channels          = cfg.info[subject]['n_channels']
+
+    n_features          = n_channels*len(features)  
+
+
+    # Load interictal data
+    X_interictal = np.zeros((n_interictal, n_features))
+    sequence_interictal = np.zeros(n_interictal)
+
+    for ii, file_idx in enumerate(interictal_files_idx):
+        filename = 'cumulants_interictal_%d_p_%d.h5'%(file_idx, p_idx)
+        filename = os.path.join('cumulant_features', subject, filename)
+
+        with h5py.File(filename, "r") as file:
+            temp = ()
+            for feat in features:
+                temp = temp + (file[feat][:],)
+
+            X_interictal[ii, :] = np.hstack(temp)
+            sequence_interictal[ii] = file['sequence'].value
+
+    y_interictal = np.zeros(n_interictal)
+
+    # Load preictal data
+    X_preictal = np.zeros((n_preictal, n_features))
+    sequence_preictal = np.zeros(n_preictal)
+
+    for ii, file_idx in enumerate(preictal_files_idx):
+        filename = 'cumulants_preictal_%d_p_%d.h5'%(file_idx, p_idx)
+        filename = os.path.join('cumulant_features', subject ,filename)
+
+        with h5py.File(filename, "r") as file:
+            temp = ()
+            for feat in features:
+                temp = temp + (file[feat][:],)
+
+            X_preictal[ii, :] = np.hstack(temp)
+            sequence_preictal[ii] = file['sequence'].value
+
+    y_preictal = np.ones(n_preictal)
+
+
+    # Merge 
+    X = np.vstack((X_interictal, X_preictal))
+    y = np.hstack((y_interictal, y_preictal))
+
+
+    return X, y, sequence_interictal, sequence_preictal
