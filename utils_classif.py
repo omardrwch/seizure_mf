@@ -39,7 +39,7 @@ def get_classifier(classifier_name, inner_cv, groups_cv):
         logregl1 = LogisticRegression(penalty = 'l1')
         # parameters for grid search
         p_grid = {}
-        p_grid['C'] = np.power(10.0, np.linspace(-4, 4, 10))       
+        p_grid['C'] = np.power(10.0, np.linspace(-4, 4, 4))       
         # classifier
         clf = GridSearchCV(estimator=logregl1, param_grid=p_grid, cv=inner_cv)
         # parameters required to fit the classifier
@@ -58,11 +58,10 @@ def get_classifier(classifier_name, inner_cv, groups_cv):
 
     elif classifier_name == 'random_forest':
         rf = RandomForestClassifier(n_estimators=150)
-        p_grid = {'max_features': ['sqrt'],
-                       'criterion': ['gini', 'entropy'],
-                       'max_depth': [2, 8]}
-
-        clf = GridSearchCV(estimator=rf, param_grid=p_grid, cv=inner_cv)
+        # p_grid = {'max_features': ['sqrt'],
+        #                'criterion': ['gini', 'entropy'],
+        #                'max_depth': [2, 8]}
+        clf = rf #GridSearchCV(estimator=rf, param_grid=p_grid, cv=inner_cv)
         # parameters required to fit the classifier
         fit_params = {} #{'groups':groups_cv}
 

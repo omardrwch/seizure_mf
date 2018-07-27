@@ -3,16 +3,19 @@ import utils
 import utils_classif
 import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.metrics import roc_auc_score
+from sklearn.ensemble import RandomForestClassifier
+
 
 random_state = 123
-n_jobs       = 3
+n_jobs       = 1
 
 #-----------------------------------------------------------
 # Load features
 #-----------------------------------------------------------
-subject = 'Dog_3'
+subject = 'Dog_1'
 options = {'p_idx':0,
-           'features': ['hurst', 'c2', 'c3', 'c4']}
+           'features': ['c1', 'c2']}
 
 X, y, sequence_interictal, sequence_preictal = utils.load_classif_data(subject, options)
 
@@ -21,8 +24,8 @@ groups = np.arange(X.shape[0])
 #-----------------------------------------------------------
 # Classification parameters
 #-----------------------------------------------------------
-classifier_name = 'linear_svm_scaled'
-train_sizes = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+classifier_name = 'random_forest'
+train_sizes = [0.3, 0.5, 0.7, 0.9]
 scoring     = ['roc_auc']
 n_splits    = 20
 
@@ -43,56 +46,63 @@ plt.show()
 
 
 
-cv  = StratifiedShuffleSplit(n_splits     = 20, 
-                             test_size    = 0.8, 
-                                   random_state = random_state )
-clf, fit_params = utils_classif.get_classifier(classifier_name, cv, groups)
-w, positive = utils_classif.get_feature_importances(clf, fit_params, X, y)
-
-
-
-# #-----------------------------------------------------------
-# # Debug
-# #-----------------------------------------------------------
-# np.random.seed(456)
-# from sklearn.svm import SVC
-
 # cv  = StratifiedShuffleSplit(n_splits     = 20, 
-#                              test_size    = 0.9, 
+#                              test_size    = 0.8, 
 #                                    random_state = random_state )
+# clf, fit_params = utils_classif.get_classifier(classifier_name, cv, groups)
+# w, positive = utils_classif.get_feature_importances(clf, fit_params, X, y)
 
 
-# err_list = []
 
-# for train_index, test_index in cv.split(X, y):
-#     X_train = X[train_index, :]
-#     X_test  = X[test_index,  :]
+#-----------------------------------------------------------
+# Debug
+#-----------------------------------------------------------
+np.random.seed(456)
+from sklearn.svm import SVC
 
-#     y_train = y[train_index]
-#     y_test  = y[test_index]
-
-#     print(y_train)
-
-#     clf = SVC(kernel='linear', C = 0.05, tol = 1e-8)
-#     # clf = RandomForestClassifier(n_estimators = 50)
-#     clf.fit(X_train, y_train)
-
-#     y_pred = clf.predict(X_test)
-
-#     err_abs = (y_pred != y_test).sum()
-
-#     err = err_abs/len(y_pred)
-
-#     err_list.append(err)
-#     # print("err = ", err)
-
-# err_list = np.array(err_list)
-# acc_test = 1 - err_list
-
-# print("-----------------")
-# print("acc = %f +- %f"%(acc_test.mean(), acc_test.std()))
+cv  = StratifiedShuffleSplit(n_splits     = 30, 
+                             test_size    = 0.1, 
+                             random_state = random_state )
 
 
+err_list = []
+auc_list = []
+
+for train_index, test_index in cv.split(X, y):
+    X_train = X[train_index, :]
+    X_test  = X[test_index,  :]
+
+    y_train = y[train_index]
+    y_test  = y[test_index]
+
+    # print(y_train)
+
+    # clf = SVC(kernel='linear', C = 0.05, tol = 1e-8)
+    clf = RandomForestClassifier(n_estimators=150)
+
+    clf.fit(X_train, y_train)
+
+    y_pred = clf.predict_proba(X_test)[:, 1]
+
+    err_abs = (y_pred != y_test).sum()
+
+    err = err_abs/len(y_pred)
+
+    auc_list.append(roc_auc_score(y_test, y_pred))
+
+    err_list.append(err)
+    # print("err = ", err)
+
+auc_list = np.array(auc_list)
+err_list = np.array(err_list)
+acc_test = 1 - err_list
+
+print("-----------------")
+print("acc = %f +- %f"%(acc_test.mean(), acc_test.std()))
+
+
+print("-----------------")
+print("roc_auc = %f +- %f"%(auc_list.mean(), auc_list.std()))
 
 
 # #-----------------------------------------------------------

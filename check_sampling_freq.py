@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import utils
 
-subject = 'Dog_2'
-interictal_files_idx  = np.arange(1, 481)
-preictal_files_idx    = np.arange(1, 25)
+subject = 'Patient_2'
+interictal_files_idx  = np.arange(1, 10)
+preictal_files_idx    = np.arange(1, 10)
 
 
 
@@ -14,7 +14,7 @@ for inter_file_idx in interictal_files_idx:
 	s_freq = data['s_freq']
 	duration = data['length_sec']
 	seq    = data['sequence'] 
-	print('s_freq = %f, duration = %f, sequence = %f'%(s_freq, duration, seq))
+	print('s_freq = %f, duration = %f, sequence = %f, data shape 1 = %d'%(s_freq, duration, seq, data['data'].shape[0]))
 
 
 print("----------------")
@@ -24,5 +24,4 @@ for pre_file_idx in preictal_files_idx:
 	s_freq = data['s_freq']
 	duration = data['length_sec']
 	seq    = data['sequence'] 
-	print('s_freq = %f, duration = %f, sequence = %f'%(s_freq, duration, seq))
-
+	print('s_freq = %f, duration = %f, sequence = %f, data shape 1 = %d'%(s_freq, duration, seq, data['data'].shape[0]))

@@ -11,7 +11,7 @@ from joblib import Parallel, delayed
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-N_JOBS = 4
+N_JOBS = 6
 
 def extract_features(args):
     """

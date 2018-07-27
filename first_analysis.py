@@ -16,22 +16,22 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # ALL_FILES = True
 
 
-subject               = 'Dog_1'
+subject               = 'Patient_1'
 interictal_files_idx  = np.arange(15, 30)
-preictal_files_idx    = list(range(1,25))
-n_channels            = 16  # 15 for people, 16 for dogs
+preictal_files_idx    = list(range(1,19))
+n_channels            = 15  # 15 for people, 16 for dogs
 ALL_FILES = True
 
-s_freq  = 399.609756
+s_freq  = 5000 #399.609756
 fmin    = 0.2
-fmax    = 2    
+fmax    = 2  
 j1,j2   = utils.get_scales(s_freq, fmin, fmax)
+# j1 = 7
+# j2 = 12
 
 # interictal_files_idx  = np.arange(30, 32)
 # preictal_files_idx    = np.arange(10, 12)
 # n_channels            = 3
-
-
 
 
 # MF analysis object
@@ -52,26 +52,26 @@ if not ALL_FILES:
     mfa.q = np.arange(-8, 9)
 
     # Get interictal signal
-    interictal_signal = utils.get_interictal_data(1, subject)['data'][15,:]
+    interictal_signal = utils.get_interictal_data(2, subject)['data'][11,:]
 
     mfa.analyze(interictal_signal)
 
-    # structure_dwt = mf.StructureFunction(mfa.wavelet_coeffs,
-    #                                      mfa.q,
-    #                                      mfa.j1,
-    #                                      mfa.j2_eff,
-    #                                      mfa.wtype)
+    structure_dwt = mf.StructureFunction(mfa.wavelet_coeffs,
+                                         mfa.q,
+                                         mfa.j1,
+                                         mfa.j2_eff,
+                                         mfa.wtype)
 
     
     mfa.plot_cumulants(show = False)
     mfa.plot_structure(show = False)
     mfa.plot_spectrum (show = False)
-    # plt.figure(); structure_dwt.plot('A', 'B')
+    plt.figure(); structure_dwt.plot('A', 'B')
     plt.show()
 
 
     # Get preictal signal
-    preictal_signal = utils.get_preictal_data(1, subject)['data'][15,:]
+    preictal_signal = utils.get_preictal_data(2, subject)['data'][11,:]
 
     mfa.analyze(preictal_signal)
 
