@@ -57,7 +57,7 @@ def get_classifier(classifier_name, inner_cv, groups_cv):
         clf = make_pipeline(StandardScaler(),clf)
 
     elif classifier_name == 'random_forest':
-        rf = RandomForestClassifier(n_estimators=150)
+        rf = RandomForestClassifier(n_estimators=300)
         # p_grid = {'max_features': ['sqrt'],
         #                'criterion': ['gini', 'entropy'],
         #                'max_depth': [2, 8]}

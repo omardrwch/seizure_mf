@@ -19,49 +19,99 @@ params = {}
 
 
 params['Dog_1'] = { 'options':   { 'p_idx':0,
-          					       'features': ['c1', 'c2'],
+          					       'features': ['c1'],
                                    'clip_c2': False},
                     'classifier_name': 'random_forest'
                   }
 
+
 params['Dog_2'] = { 'options':   { 'p_idx':0,
-          					       'features': ['c1', 'c2'],
+          					       'features': ['c1'],
                                    'clip_c2': False},
                     'classifier_name': 'random_forest'
                   }
 
 params['Dog_3'] = { 'options':   { 'p_idx':0,
-          					       'features': ['c1', 'c2'],
+          					       'features': ['c1'],
                                    'clip_c2': False},
                     'classifier_name': 'random_forest'
                   }
 
 
 params['Dog_4'] = { 'options':   { 'p_idx':0,
-          					       'features': ['c1', 'c2'],
+          					       'features': ['c1'],
                                    'clip_c2': False},
                     'classifier_name': 'random_forest'
                   }
 
 
-params['Dog_5'] = { 'options':   { 'p_idx':0,
-          					       'features': ['c1', 'c2'],
+params['Dog_5'] = { 'options':   { 'p_idx':4,
+          					       'features': ['c1'],
                                    'clip_c2': False},
                     'classifier_name': 'random_forest'
                   }
 
 params['Patient_1'] = { 'options':   { 'p_idx':0,
-          					       'features': ['c1', 'c2'],
+          					       'features': ['c1'],
                                    'clip_c2': False},
                         'classifier_name': 'random_forest'
                       }
 
 
 params['Patient_2'] = { 'options':   { 'p_idx':0,
-          					       'features': ['c1', 'c2'],
+          					       'features': ['c1'],
                                    'clip_c2': False},
                         'classifier_name': 'random_forest'
                       }
+
+
+
+
+# params['Dog_1'] = { 'options':   { 'p_idx':0,
+#           					       'features': ['c1', 'c2'],
+#                                    'clip_c2': False},
+#                     'classifier_name': 'random_forest'
+#                   }
+
+
+# params['Dog_2'] = { 'options':   { 'p_idx':0,
+#           					       'features': ['c1', 'c2'],
+#                                    'clip_c2': False},
+#                     'classifier_name': 'random_forest'
+#                   }
+
+# params['Dog_3'] = { 'options':   { 'p_idx':0,
+#           					       'features': ['c1', 'c2'],
+#                                    'clip_c2': False},
+#                     'classifier_name': 'random_forest'
+#                   }
+
+
+# params['Dog_4'] = { 'options':   { 'p_idx':0,
+#           					       'features': ['hurst', 'c2'],
+#                                    'clip_c2': False},
+#                     'classifier_name': 'random_forest'
+#                   }
+
+
+# params['Dog_5'] = { 'options':   { 'p_idx':4,
+#           					       'features': ['c1', 'c2', 'c3'],
+#                                    'clip_c2': False},
+#                     'classifier_name': 'random_forest'
+#                   }
+
+# params['Patient_1'] = { 'options':   { 'p_idx':0,
+#           					       'features': ['c1', 'c2'],
+#                                    'clip_c2': False},
+#                         'classifier_name': 'random_forest'
+#                       }
+
+
+# params['Patient_2'] = { 'options':   { 'p_idx':0,
+#           					       'features': ['c1', 'c2'],
+#                                    'clip_c2': False},
+#                         'classifier_name': 'random_forest'
+#                       }
 
 
 #-----------------------------------------------------------
@@ -71,7 +121,7 @@ params['Patient_2'] = { 'options':   { 'p_idx':0,
 data_dict = {'clip': [], 'preictal': []}
 df = pd.DataFrame.from_dict(data_dict)
 
-for subject in ['Dog_1', 'Dog_2']: #cfg.subjects:
+for subject in cfg.subjects:
 	print(subject, params[subject])
 
 	clf, fit_params = utils_classif.get_classifier(params[subject]['classifier_name'], 
@@ -99,6 +149,6 @@ for subject in ['Dog_1', 'Dog_2']: #cfg.subjects:
 
 	df = pd.concat( [df, pd.DataFrame.from_dict(data_dict)], ignore_index  = True)
 
-	outfilename = os.path.join('submissions', 'one.csv')
+	outfilename = os.path.join('submissions', 'two.csv')
 
 	df.to_csv(outfilename, index=False)

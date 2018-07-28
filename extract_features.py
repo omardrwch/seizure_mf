@@ -147,7 +147,10 @@ if __name__ == '__main__':
     for args in arg_instances:
         file_idx, condition, subject, n_channels, params, p_info = args
 
-        output_dir = os.path.join(current_dir, 'cumulant_features', subject)
+        if condition == 'test':
+            output_dir = os.path.join(test_data_loc, 'cumulant_features', subject)
+        else:
+            output_dir = os.path.join(current_dir, 'cumulant_features', subject)
         output_filename = ('cumulants_%s_%d_p_%d.h5'%(condition, file_idx, p_info[1]))
         output_filename = os.path.join(output_dir, output_filename)
         if os.path.isfile(output_filename):
