@@ -4,7 +4,9 @@ import utils_classif
 import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve, auc
 from sklearn.ensemble import RandomForestClassifier
+from scipy import interp
 
 
 random_state = 123
@@ -13,8 +15,8 @@ n_jobs       = 1
 #-----------------------------------------------------------
 # Load features
 #-----------------------------------------------------------
-subject = 'Dog_1'
-options = {'p_idx':0,
+subject = 'Patient_1'
+options = {'p_idx':4,
            'features': ['c1', 'c2']}
 
 X, y, sequence_interictal, sequence_preictal = utils.load_classif_data(subject, options)
@@ -42,7 +44,7 @@ train_sizes_abs, train_scores, test_scores = \
 utils_classif.plot_learning_curve(train_sizes_abs, train_scores, test_scores, 
                                   title='', ylim = [0.4, 1.0], 
                                   fignum = None)
-plt.show()
+plt.draw()
 
 
 
@@ -61,12 +63,16 @@ np.random.seed(456)
 from sklearn.svm import SVC
 
 cv  = StratifiedShuffleSplit(n_splits     = 30, 
-                             test_size    = 0.1, 
+                             test_size    = 0.3, 
                              random_state = random_state )
 
 
-err_list = []
+
 auc_list = []
+
+tprs = []
+mean_fpr = np.linspace(0, 1, 100)
+
 
 for train_index, test_index in cv.split(X, y):
     X_train = X[train_index, :]
@@ -84,25 +90,36 @@ for train_index, test_index in cv.split(X, y):
 
     y_pred = clf.predict_proba(X_test)[:, 1]
 
-    err_abs = (y_pred != y_test).sum()
-
-    err = err_abs/len(y_pred)
-
     auc_list.append(roc_auc_score(y_test, y_pred))
-
-    err_list.append(err)
-    # print("err = ", err)
-
-auc_list = np.array(auc_list)
-err_list = np.array(err_list)
-acc_test = 1 - err_list
-
-print("-----------------")
-print("acc = %f +- %f"%(acc_test.mean(), acc_test.std()))
+    fpr, tpr, _ = roc_curve(y_test, y_pred)
+    tprs.append(interp(mean_fpr, fpr, tpr))
+    tprs[-1][0] = 0.0
 
 
-print("-----------------")
-print("roc_auc = %f +- %f"%(auc_list.mean(), auc_list.std()))
+plt.figure()
+plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
+         label='Luck', alpha=.8)
+mean_tpr = np.mean(tprs, axis=0)
+mean_tpr[-1] = 1.0
+mean_auc = auc(mean_fpr, mean_tpr)
+std_auc = np.std(auc_list)
+plt.plot(mean_fpr, mean_tpr, color='b',
+         label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, std_auc),
+         lw=2, alpha=.8)
+std_tpr = np.std(tprs, axis=0)
+tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
+tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
+plt.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2,
+                 label=r'$\pm$ 1 std. dev.')
+
+plt.xlim([-0.05, 1.05])
+plt.ylim([-0.05, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver operating characteristic (ROC)')
+plt.legend(loc="lower right")
+plt.show()
+
 
 
 # #-----------------------------------------------------------
