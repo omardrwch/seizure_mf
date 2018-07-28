@@ -43,6 +43,25 @@ def get_preictal_data(file_idx, subject):
     return output
 
 
+def get_test_data(file_idx, subject, folder = None):
+    filename = subject + '_test_segment_%s.mat'%(str(file_idx).zfill(4))
+    filename = os.path.join('prediction_data', subject, filename)
+    if folder is not None:
+        filename = os.path.join(folder, filename)
+
+    contents = loadmat(filename)
+
+    output = {}
+    output['data']       = contents['test_segment_%d'%file_idx][0][0][0]
+    output['length_sec'] = contents['test_segment_%d'%file_idx][0][0][1][0][0]
+    output['s_freq']     = contents['test_segment_%d'%file_idx][0][0][2][0][0]
+    output['channels']   = contents['test_segment_%d'%file_idx][0][0][3].squeeze()
+    # output['sequence']   = contents['test_segment_%d'%file_idx][0][0][4][0][0]
+
+    return output
+
+
+
 
 def compare_distributions(data1, data2, n_channels, title = ''):
     """
@@ -120,7 +139,14 @@ def load_classif_data(subject, options):
         with h5py.File(filename, "r") as file:
             temp = ()
             for feat in features:
-                temp = temp + (file[feat][:],)
+                aux = file[feat][:]
+                if feat =='c2' and options['clip_c2']:
+                    aux = aux.clip(max = 0)
+
+                temp = temp + (aux,)
+
+
+
 
             X_interictal[ii, :] = np.hstack(temp)
             sequence_interictal[ii] = file['sequence'].value
@@ -138,7 +164,12 @@ def load_classif_data(subject, options):
         with h5py.File(filename, "r") as file:
             temp = ()
             for feat in features:
-                temp = temp + (file[feat][:],)
+                aux = file[feat][:]
+
+                if feat =='c2' and options['clip_c2']:
+                    aux = aux.clip(max = 0)
+
+                temp = temp + (aux,)
 
             X_preictal[ii, :] = np.hstack(temp)
             sequence_preictal[ii] = file['sequence'].value
@@ -152,3 +183,40 @@ def load_classif_data(subject, options):
 
 
     return X, y, sequence_interictal, sequence_preictal
+
+def load_classif_test_data(subject, options, test_folder = None):
+
+    # Setup
+    p_idx     = options['p_idx']
+    features  = options['features'] # e.g, ['c1', 'c2'], elements should be
+                                    # in ['hurst', 'c1', 'c2', 'c3', 'c4']
+
+    test_files_idx  = cfg.info[subject]['test_files_idx']
+    n_test          = len(test_files_idx)
+    n_channels      = cfg.info[subject]['n_channels']
+    n_features      = n_channels*len(features)  
+
+
+    # Load interictal data
+    X = np.zeros((n_test, n_features))
+
+    for ii, file_idx in enumerate(test_files_idx):
+        filename = 'cumulants_test_%d_p_%d.h5'%(file_idx, p_idx)
+        filename = os.path.join('cumulant_features', subject, filename)
+        if test_folder is not None:
+            filename = os.path.join(test_folder, filename)       
+
+
+        with h5py.File(filename, "r") as file:
+            temp = ()
+            for feat in features:
+                aux = file[feat][:]
+                if feat =='c2' and options['clip_c2']:
+                    aux = aux.clip(max = 0)
+
+                temp = temp + (aux,)
+
+            X[ii, :] = np.hstack(temp)
+
+
+    return X

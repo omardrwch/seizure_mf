@@ -1,3 +1,7 @@
+"""
+Run classification+cross-validation on training data. 
+"""
+
 import numpy as np
 import utils
 import utils_classif
@@ -15,9 +19,10 @@ n_jobs       = 1
 #-----------------------------------------------------------
 # Load features
 #-----------------------------------------------------------
-subject = 'Patient_1'
-options = {'p_idx':4,
-           'features': ['c1', 'c2']}
+subject = 'Dog_1'
+options = {'p_idx':0,
+           'features': ['c1', 'c2'],
+           'clip_c2': False}
 
 X, y, sequence_interictal, sequence_preictal = utils.load_classif_data(subject, options)
 
@@ -125,10 +130,10 @@ plt.show()
 # #-----------------------------------------------------------
 # # Visualize train/test
 # #-----------------------------------------------------------
-# 
+
 
 # cv  = StratifiedShuffleSplit(n_splits     = 5, 
-#                                    test_size    = 0.8, 
+#                                    test_size    = 0.2, 
 #                                    random_state = random_state )
 
 
@@ -146,17 +151,17 @@ plt.show()
 
 
 #     plt.title(title)
-#     plt.plot(np.arange(16), data_train.mean(axis=0), colors[0] + 'o-', label = 'train')
-#     plt.plot(np.arange(16), data_test.mean(axis=0),  colors[1] + 'o-', label = 'test')
+#     plt.plot(np.arange(data_train.shape[1]), data_train.mean(axis=0), colors[0] + 'o-', label = 'train')
+#     plt.plot(np.arange(data_train.shape[1]), data_test.mean(axis=0),  colors[1] + 'o-', label = 'test')
 #     plt.xlabel('sensor')
 #     plt.ylabel('mean feature')
 #     plt.legend()
 
 
-#     plt.fill_between(np.arange(16),data_train.mean(axis=0) - data_train.std(axis=0),
+#     plt.fill_between(np.arange(data_train.shape[1]),data_train.mean(axis=0) - data_train.std(axis=0),
 #                                 data_train.mean(axis=0) + data_train.std(axis=0), alpha=0.25,
 #                              color=colors[0])
-#     plt.fill_between(np.arange(16),data_test.mean(axis=0) - data_test.std(axis=0),
+#     plt.fill_between(np.arange(data_train.shape[1]),data_test.mean(axis=0) - data_test.std(axis=0),
 #                              data_test.mean(axis=0) + data_test.std(axis=0), alpha=0.25,
 #                              color=colors[1])
 
@@ -183,10 +188,10 @@ plt.show()
 #     compare_distributions(X_train_1, X_test_1, title = 'both',  fignum = 100, colors = ['m', 'y'])
 
 #     plt.show()
-#     # X_train_0 = [train_index, :]
+    # X_train_0 = [train_index, :]
 
 
-#     # X_test = [train_index, :]
+    # X_test = [train_index, :]
 
-#     # print(y[train_index].sum())
-#     # print(y[test_index].sum())
+    # print(y[train_index].sum())
+    # print(y[test_index].sum())

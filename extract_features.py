@@ -9,15 +9,19 @@ from joblib import Parallel, delayed
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
+N_JOBS = 5
 
 
-N_JOBS = 6
+
+CONDITIONS = ['test']#['interictal', 'preictal']
+test_data_loc = 'D:\\parietal'
+
 
 def extract_features(args):
     """
     args = tuple containing: 
         file_idx : index of the file to be analyzed
-        condition: 'interictal' or 'preictal'
+        condition: 'interictal', 'preictal' or 'test'
         subject  : 'Dog_1', 'Dog_2' etc 
         n_channels: int config.info[subject]['n_channels']
         params   : dictionary config.mf_params[subject]
@@ -25,9 +29,12 @@ def extract_features(args):
                    p and its index
     """
 
+    global test_data_loc
+
     file_idx, condition, subject, n_channels, params, p_info = args
 
-    try:
+    # try:
+    if True:
         p = p_info[0]
         p_index = p_info[1]
 
@@ -43,9 +50,16 @@ def extract_features(args):
             contents = utils.get_interictal_data(file_idx, subject)
         elif condition == 'preictal':
             contents = utils.get_preictal_data(file_idx, subject)
+        elif condition == 'test':
+            contents = utils.get_test_data(file_idx, subject, test_data_loc)
+
 
         data     = contents['data']
-        sequence = contents['sequence']
+
+        if condition != 'test':
+            sequence = contents['sequence']
+        else:
+            sequence = -1
 
 
         # Run MF analysis
@@ -74,7 +88,12 @@ def extract_features(args):
 
 
         # Save file
-        output_dir = os.path.join(current_dir, 'cumulant_features', subject)
+        if condition == 'test':
+            output_dir = os.path.join(test_data_loc, 'cumulant_features', subject)
+        else:
+            output_dir = os.path.join(current_dir, 'cumulant_features', subject)
+
+
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
@@ -92,8 +111,8 @@ def extract_features(args):
 
         # return mfa
         # return hurst, c1, c2, c3, c4
-    except:
-        pass
+    # except:
+    #     pass
 
 
 if __name__ == '__main__':
@@ -104,11 +123,13 @@ if __name__ == '__main__':
 
     arg_instances = []
     for subject in cfg.subjects:
-        for condition in ['interictal', 'preictal']:
+        for condition in CONDITIONS:
             if condition == 'interictal':
                 indexes = cfg.info[subject]['interictal_files_idx']
             elif condition == 'preictal':
                 indexes = cfg.info[subject]['preictal_files_idx']
+            elif condition == 'test':
+                indexes = cfg.info[subject]['test_files_idx']
 
             for file_idx in indexes:
                 for p_info in cfg.p_list:

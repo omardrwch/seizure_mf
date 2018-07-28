@@ -13,7 +13,8 @@ info['Dog_1'] = { 's_freq': 399.609756,
                   'n_channels': 16,
                   'length_sec': 600,
                   'interictal_files_idx': np.arange(1, 481),
-                  'preictal_files_idx'  : np.arange(1, 25)
+                  'preictal_files_idx'  : np.arange(1, 25),
+                  'test_files_idx'  : np.arange(1, 503)
                 }
 
 
@@ -21,42 +22,48 @@ info['Dog_2'] = { 's_freq': 399.609756,
                   'n_channels': 16,
                   'length_sec': 600,
                   'interictal_files_idx': np.arange(1, 501),
-                  'preictal_files_idx'  : np.arange(1, 43)
+                  'preictal_files_idx'  : np.arange(1, 43),
+                  'test_files_idx'  : np.arange(1, 1001)
                 }
 
 info['Dog_3'] = { 's_freq': 399.609756,
                   'n_channels': 16,
                   'length_sec': 600,
                   'interictal_files_idx': np.arange(1, 1441),
-                  'preictal_files_idx'  : np.arange(1, 72)
+                  'preictal_files_idx'  : np.arange(1, 72),
+                  'test_files_idx'  : np.arange(1, 908)
                 }
 
 info['Dog_4'] = { 's_freq': 399.609756,
                   'n_channels': 16,
                   'length_sec': 600,
                   'interictal_files_idx': np.arange(1, 805),
-                  'preictal_files_idx'  : np.arange(1, 98)
+                  'preictal_files_idx'  : np.arange(1, 98),
+                  'test_files_idx'  : np.arange(1, 991)
                 }
 
 info['Dog_5'] = { 's_freq': 399.609756,
                   'n_channels': 15,
                   'length_sec': 600,
                   'interictal_files_idx': np.arange(1, 451),
-                  'preictal_files_idx'  : np.arange(1, 31)
+                  'preictal_files_idx'  : np.arange(1, 31),
+                  'test_files_idx'  : np.arange(1, 192)
                 }
 
 info['Patient_1'] = { 's_freq': 5000.0,
                       'n_channels': 15,
                       'length_sec': 600,
                       'interictal_files_idx': np.arange(1, 51),
-                      'preictal_files_idx'  : np.arange(1, 19)
+                      'preictal_files_idx'  : np.arange(1, 19),
+                      'test_files_idx'  : np.arange(1, 196)
                     }
 
 info['Patient_2'] = { 's_freq': 5000.0,
                       'n_channels': 24,
                       'length_sec': 600,
                       'interictal_files_idx': np.arange(1, 43),
-                      'preictal_files_idx'  : np.arange(1, 19)
+                      'preictal_files_idx'  : np.arange(1, 19),
+                      'test_files_idx'  : np.arange(1, 151)
                     }
 
 #--------------------------------------------------------------------
