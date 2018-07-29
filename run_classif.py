@@ -6,7 +6,7 @@ import numpy as np
 import utils
 import utils_classif
 import matplotlib.pyplot as plt
-from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import roc_curve, auc
 from sklearn.ensemble import RandomForestClassifier
@@ -26,7 +26,9 @@ options = {'p_idx':0,
 
 X, y, sequence_interictal, sequence_preictal = utils.load_classif_data(subject, options)
 
-groups = np.arange(X.shape[0])
+# groups = np.arange(X.shape[0])
+groups = np.hstack((sequence_interictal, 100 + sequence_preictal))
+
 
 #-----------------------------------------------------------
 # Classification parameters
@@ -53,7 +55,7 @@ plt.draw()
 
 
 
-# cv  = StratifiedShuffleSplit(n_splits     = 20, 
+# cv  = RepeatedStratifiedKFold(n_splits     = 20, 
 #                              test_size    = 0.8, 
 #                                    random_state = random_state )
 # clf, fit_params = utils_classif.get_classifier(classifier_name, cv, groups)
@@ -67,7 +69,7 @@ plt.draw()
 np.random.seed(456)
 from sklearn.svm import SVC
 
-cv  = StratifiedShuffleSplit(n_splits     = 30, 
+cv  = RepeatedStratifiedKFold(n_splits     = 30, 
                              test_size    = 0.3, 
                              random_state = random_state )
 
@@ -132,7 +134,7 @@ plt.show()
 # #-----------------------------------------------------------
 
 
-# cv  = StratifiedShuffleSplit(n_splits     = 5, 
+# cv  = RepeatedStratifiedKFold(n_splits     = 5, 
 #                                    test_size    = 0.2, 
 #                                    random_state = random_state )
 

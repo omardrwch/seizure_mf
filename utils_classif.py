@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-from sklearn.model_selection import GridSearchCV, StratifiedShuffleSplit, cross_validate, learning_curve
+from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold, cross_validate, learning_curve
 from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 from sklearn.pipeline import make_pipeline
@@ -111,10 +111,10 @@ def my_learning_curve(classifier_name, X, y, groups, train_sizes, scoring,
         print("---- Running for train size = ", train_s)
         test_size = 1.0 - train_s  
 
-        inner_cv  = StratifiedShuffleSplit(n_splits= n_splits, 
+        inner_cv  = RepeatedStratifiedKFold(n_splits= n_splits, 
                                       test_size = test_size, 
                                       random_state = random_state )
-        outer_cv  = StratifiedShuffleSplit(n_splits= n_splits, 
+        outer_cv  = RepeatedStratifiedKFold(n_splits= n_splits, 
                                       test_size = test_size, 
                                       random_state = random_state )
 
@@ -216,7 +216,7 @@ def run_classification(classifier_name,
                                               n_jobs)
 
     # Get weights/feature importances
-    inner_cv  = StratifiedShuffleSplit(n_splits= n_splits, 
+    inner_cv  = RepeatedStratifiedKFold(n_splits= n_splits, 
                                  test_size = 1-ref_train_size, 
                                  random_state = random_state)
 
