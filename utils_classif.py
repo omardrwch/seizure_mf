@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold, cross_validate, learning_curve
+from sklearn.model_selection import GridSearchCV, StratifiedShuffleSplit, cross_validate, learning_curve
 from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 from sklearn.pipeline import make_pipeline
@@ -49,7 +49,7 @@ def get_classifier(classifier_name, inner_cv, groups_cv):
         logregl1 = LogisticRegression(penalty = 'l1')
         # parameters for grid search
         p_grid = {}
-        p_grid['C'] = np.power(10.0, np.linspace(-4, 4, 10))       
+        p_grid['C'] = np.power(10.0, np.linspace(-4, 4, 4))       
         # classifier
         clf = GridSearchCV(estimator=logregl1, param_grid=p_grid, cv=inner_cv)
         # parameters required to fit the classifier
@@ -96,7 +96,7 @@ def get_feature_importances(clf, fit_params, X, y):
 
 
 def my_learning_curve(classifier_name, X, y, groups, train_sizes, scoring, 
-                     n_splits, random_state, n_jobs):
+                     n_splits, random_state, n_jobs, return_clf = False):
     """
     train_sizes: array of floats between 0 and 1
     n_splits:    number of cross validation splits
@@ -111,10 +111,10 @@ def my_learning_curve(classifier_name, X, y, groups, train_sizes, scoring,
         print("---- Running for train size = ", train_s)
         test_size = 1.0 - train_s  
 
-        inner_cv  = RepeatedStratifiedKFold(n_splits= n_splits, 
+        inner_cv  = StratifiedShuffleSplit(n_splits= n_splits, 
                                       test_size = test_size, 
                                       random_state = random_state )
-        outer_cv  = RepeatedStratifiedKFold(n_splits= n_splits, 
+        outer_cv  = StratifiedShuffleSplit(n_splits= n_splits, 
                                       test_size = test_size, 
                                       random_state = random_state )
 
@@ -156,7 +156,10 @@ def my_learning_curve(classifier_name, X, y, groups, train_sizes, scoring,
             test_scores.append(output['test_roc_auc'])
 
 
-    return np.array(train_sizes_abs), np.array(train_scores), np.array(test_scores)
+    if not return_clf:
+        return np.array(train_sizes_abs), np.array(train_scores), np.array(test_scores)
+    else:
+        return np.array(train_sizes_abs), np.array(train_scores), np.array(test_scores), clf
 
 
 def plot_learning_curve(train_sizes, train_scores, test_scores, 
@@ -216,7 +219,7 @@ def run_classification(classifier_name,
                                               n_jobs)
 
     # Get weights/feature importances
-    inner_cv  = RepeatedStratifiedKFold(n_splits= n_splits, 
+    inner_cv  = StratifiedShuffleSplit(n_splits= n_splits, 
                                  test_size = 1-ref_train_size, 
                                  random_state = random_state)
 

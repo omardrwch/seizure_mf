@@ -16,15 +16,15 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # ALL_FILES = True
 
 
-subject               = 'Patient_1'
+subject               = 'Dog_1'
 interictal_files_idx  = np.arange(15, 30)
 preictal_files_idx    = list(range(1,19))
 n_channels            = 15  # 15 for people, 16 for dogs
 ALL_FILES = True
 
-s_freq  = 5000 #399.609756
-fmin    = 0.2
-fmax    = 2  
+s_freq  = 399.609756
+fmin    = 1
+fmax    = 10  
 j1,j2   = utils.get_scales(s_freq, fmin, fmax)
 # j1 = 7
 # j2 = 12
@@ -37,7 +37,7 @@ j1,j2   = utils.get_scales(s_freq, fmin, fmax)
 # MF analysis object
 mfa = mf.MFA()
 mfa.wt_name = 'db4'             # !!!
-mfa.p  = 0.25                   # !!!
+mfa.p  = 2                  # !!!
 mfa.j1 = j1     
 mfa.j2 = j2
 mfa.q  = [2]

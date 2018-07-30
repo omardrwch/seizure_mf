@@ -9,11 +9,10 @@ from joblib import Parallel, delayed
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-N_JOBS = 5
+N_JOBS = 1
 
 
-
-CONDITIONS = ['test']#['interictal', 'preictal']
+CONDITIONS = ['interictal', 'preictal'] #['test']
 test_data_loc = 'D:\\parietal'
 
 
@@ -54,7 +53,7 @@ def extract_features(args):
             contents = utils.get_test_data(file_idx, subject, test_data_loc)
 
 
-        data     = contents['data']
+        data = contents['data']
 
         if condition != 'test':
             sequence = contents['sequence']
@@ -68,6 +67,7 @@ def extract_features(args):
         c2 = np.zeros(n_channels)
         c3 = np.zeros(n_channels)
         c4 = np.zeros(n_channels)
+
 
         for ii in range(n_channels):
             signal = data[ii, :]
@@ -87,15 +87,30 @@ def extract_features(args):
             c4[ii] = cp[3]
 
 
+            if ii == 0:
+                max_j = mfa.cumulants.values.shape[1]
+                c1j = np.zeros((n_channels, max_j))
+                c2j = np.zeros((n_channels, max_j))
+                c3j = np.zeros((n_channels, max_j))
+                c4j = np.zeros((n_channels, max_j))
+
+            c1j[ii, :] = mfa.cumulants.values[0, :]
+            c2j[ii, :] = mfa.cumulants.values[1, :]
+            c3j[ii, :] = mfa.cumulants.values[2, :]
+            c4j[ii, :] = mfa.cumulants.values[3, :]
+
+
+
+
         # Save file
         if condition == 'test':
-            output_dir = os.path.join(test_data_loc, 'cumulant_features', subject)
+            output_dir = os.path.join(test_data_loc, 'cumulant_features_2', subject)
         else:
-            output_dir = os.path.join(current_dir, 'cumulant_features', subject)
+            output_dir = os.path.join(current_dir, 'cumulant_features_2', subject)
 
 
         if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+            os.makedirs(output_dir, exist_ok=True)
 
         output_filename = ('cumulants_%s_%d_p_%d.h5'%(condition, file_idx, p_index))
         output_filename = os.path.join(output_dir, output_filename)
@@ -108,6 +123,10 @@ def extract_features(args):
             f.create_dataset('c3', data = c3 )
             f.create_dataset('c4', data = c4 )
             f.create_dataset('sequence', data = sequence )
+            f.create_dataset('c1j', data = c1j )
+            f.create_dataset('c2j', data = c2j )
+            f.create_dataset('c3j', data = c3j )
+            f.create_dataset('c4j', data = c4j )
 
         # return mfa
         # return hurst, c1, c2, c3, c4
@@ -148,9 +167,9 @@ if __name__ == '__main__':
         file_idx, condition, subject, n_channels, params, p_info = args
 
         if condition == 'test':
-            output_dir = os.path.join(test_data_loc, 'cumulant_features', subject)
+            output_dir = os.path.join(test_data_loc, 'cumulant_features_2', subject)
         else:
-            output_dir = os.path.join(current_dir, 'cumulant_features', subject)
+            output_dir = os.path.join(current_dir, 'cumulant_features_2', subject)
         output_filename = ('cumulants_%s_%d_p_%d.h5'%(condition, file_idx, p_info[1]))
         output_filename = os.path.join(output_dir, output_filename)
         if os.path.isfile(output_filename):
