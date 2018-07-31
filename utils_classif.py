@@ -1,12 +1,14 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
+from sklearn.svm import LinearSVC, SVC
 from sklearn.model_selection import GridSearchCV, StratifiedShuffleSplit, cross_validate, learning_curve
 from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import make_pipeline, Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import SelectFromModel, SelectKBest
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 #===============================================================================
 # Definition of classifiers/estimators
@@ -15,7 +17,7 @@ def get_classifier(classifier_name, inner_cv, groups_cv):
     clf = None
     fit_params = {}
     if classifier_name == 'linear_svm':
-        svm = SVC(kernel='linear')
+        svm = LinearSVC(dual=False)
         # parameters for grid search
         p_grid = {}
         p_grid['C'] = np.power(10.0, np.linspace(-4, 4, 10))
@@ -36,20 +38,20 @@ def get_classifier(classifier_name, inner_cv, groups_cv):
         clf = make_pipeline(StandardScaler(),clf)
 
     elif classifier_name == 'logregl1':
-        logregl1 = LogisticRegression(penalty = 'l1')
+        logregl1 = LogisticRegression(penalty = 'l1', dual = False)
         # parameters for grid search
         p_grid = {}
-        p_grid['C'] = np.power(10.0, np.linspace(-4, 4, 4))       
+        p_grid['C'] = np.power(10.0, np.linspace(-4, 4, 4))
         # classifier
         clf = GridSearchCV(estimator=logregl1, param_grid=p_grid, cv=inner_cv)
         # parameters required to fit the classifier
         fit_params = {} #{'groups':groups_cv}
 
     elif classifier_name == 'logregl1_scaled':
-        logregl1 = LogisticRegression(penalty = 'l1')
+        logregl1 = LogisticRegression(penalty = 'l1', dual = False)
         # parameters for grid search
         p_grid = {}
-        p_grid['C'] = np.power(10.0, np.linspace(-4, 4, 4))       
+        p_grid['C'] = np.power(10.0, np.linspace(-4, 4, 4))
         # classifier
         clf = GridSearchCV(estimator=logregl1, param_grid=p_grid, cv=inner_cv)
         # parameters required to fit the classifier
@@ -65,7 +67,52 @@ def get_classifier(classifier_name, inner_cv, groups_cv):
         # parameters required to fit the classifier
         fit_params = {} #{'groups':groups_cv}
 
+    elif classifier_name == 'lda':
+        lda = LinearDiscriminantAnalysis()
+        # parameters required to fit the classifier
+        fit_params = {} #{'gridsearchcv__groups':groups_cv}
+        clf = lda
+
+    elif classifier_name == 'lda_scaled':
+        lda = LinearDiscriminantAnalysis()
+        # parameters required to fit the classifier
+        fit_params = {} #{'gridsearchcv__groups':groups_cv}
+        clf = make_pipeline(StandardScaler(), lda)
+
+
+    elif classifier_name == 'select_lda_kbest_lda':
+        lda = LinearDiscriminantAnalysis()
+        clf = Pipeline([
+                       ('feature_selection',SelectKBest(lda_score_func, k = 3)),
+                       ('classification', lda)
+                      ])
+        fit_params = {}
+
+
     return clf, fit_params
+
+
+
+def lda_score_func(X, y):
+    """
+    Score function for model selection
+    """
+    lda = LinearDiscriminantAnalysis()
+
+    n_features = X.shape[1]
+    scores = np.zeros(n_features)
+
+    cv = StratifiedShuffleSplit(n_splits = 5,
+                                test_size = 0.25)
+
+    for ii in range(n_features):
+        xx = X[:, ii].reshape(-1, 1)
+        output = cross_validate(lda, X = xx, y = y, scoring = ['roc_auc'], cv = cv,
+                                return_train_score = False)
+        scores[ii] = output['test_roc_auc'].mean()
+
+    return scores
+
 
 
 def get_feature_importances(clf, fit_params, X, y):
@@ -94,9 +141,30 @@ def get_feature_importances(clf, fit_params, X, y):
     except:
         pass
 
+    try:
+        w = clf.steps[1][1].coef_.squeeze()
+        positive_only = False
+        return w, positive_only
+    except:
+        pass
 
-def my_learning_curve(classifier_name, X, y, groups, train_sizes, scoring, 
-                     n_splits, random_state, n_jobs, return_clf = False):
+    try:
+        w = clf.feature_importances_
+        positive_only = True
+        return w, positive_only
+    except:
+        pass
+
+    try:
+        w = clf.coef_.squeeze()
+        positive_only = False
+        return w, positive_only
+    except:
+        pass
+
+
+def my_learning_curve(classifier_name, X, y, groups, train_sizes, scoring,
+                     n_splits, random_state, n_jobs, return_clf_cv = False):
     """
     train_sizes: array of floats between 0 and 1
     n_splits:    number of cross validation splits
@@ -109,13 +177,13 @@ def my_learning_curve(classifier_name, X, y, groups, train_sizes, scoring,
 
     for train_s in train_sizes:
         print("---- Running for train size = ", train_s)
-        test_size = 1.0 - train_s  
+        test_size = 1.0 - train_s
 
-        inner_cv  = StratifiedShuffleSplit(n_splits= n_splits, 
-                                      test_size = test_size, 
+        inner_cv  = StratifiedShuffleSplit(n_splits= n_splits,
+                                      test_size = test_size,
                                       random_state = random_state )
-        outer_cv  = StratifiedShuffleSplit(n_splits= n_splits, 
-                                      test_size = test_size, 
+        outer_cv  = StratifiedShuffleSplit(n_splits= n_splits,
+                                      test_size = test_size,
                                       random_state = random_state )
 
 
@@ -156,14 +224,14 @@ def my_learning_curve(classifier_name, X, y, groups, train_sizes, scoring,
             test_scores.append(output['test_roc_auc'])
 
 
-    if not return_clf:
+    if not return_clf_cv:
         return np.array(train_sizes_abs), np.array(train_scores), np.array(test_scores)
     else:
-        return np.array(train_sizes_abs), np.array(train_scores), np.array(test_scores), clf
+        return np.array(train_sizes_abs), np.array(train_scores), np.array(test_scores), clf, fit_params, outer_cv
 
 
-def plot_learning_curve(train_sizes, train_scores, test_scores, 
-                        title='', ylim = [0.4, 1.0], 
+def plot_learning_curve(train_sizes, train_scores, test_scores,
+                        title='', ylim = [0.4, 1.0],
                         fignum = None, show_train_curves = True):
 
     if fignum is None:
@@ -198,29 +266,29 @@ def plot_learning_curve(train_sizes, train_scores, test_scores,
     plt.legend(loc="best")
 
 
-def run_classification(classifier_name, 
+def run_classification(classifier_name,
                        X, y, groups_cv,
                        train_sizes,
                        scoring,
                        n_splits,
                        random_state,
-                       n_jobs, 
+                       n_jobs,
                        ref_train_size = 0.8):
 
     # Get learning curve
     train_sizes_abs, train_scores, test_scores = \
-                            my_learning_curve(classifier_name, 
-                                              X, y, 
-                                              groups_cv, 
-                                              train_sizes, 
-                                              scoring, 
-                                              n_splits, 
+                            my_learning_curve(classifier_name,
+                                              X, y,
+                                              groups_cv,
+                                              train_sizes,
+                                              scoring,
+                                              n_splits,
                                               random_state,
                                               n_jobs)
 
     # Get weights/feature importances
-    inner_cv  = StratifiedShuffleSplit(n_splits= n_splits, 
-                                 test_size = 1-ref_train_size, 
+    inner_cv  = StratifiedShuffleSplit(n_splits= n_splits,
+                                 test_size = 1-ref_train_size,
                                  random_state = random_state)
 
     clf, fit_params = get_classifier(classifier_name, inner_cv, groups_cv)

@@ -15,11 +15,14 @@ from sklearn.metrics import roc_auc_score
 
 random_state = 123
 
-test_data_loc = 'D:\\parietal'
+test_data_loc = None # 'D:\\parietal' # None for default location
 
-RUN_ON_TEST = False  # If true, generate file for submission
+RUN_ON_TEST = True  # If true, generate file for submission
                      # If false, run on all training data
-                    
+
+N_SPLITS = 20
+
+OUT_FILE = 'four.csv'
 #-----------------------------------------------------------
 # Classification parameters for each subject
 #-----------------------------------------------------------
@@ -28,51 +31,63 @@ params = {}
 
 
 params['Dog_1'] = { 'options':   { 'p_idx':0,
-                                     'features': ['c1', 'c2'],
-                                   'clip_c2': False},
-                    'classifier_name': 'random_forest'
+                                     'features': ['c1'],
+                                     'clip_c2': False},
+                    'classifier_name': 'select_lda_kbest_lda'
                   }
 
 
 params['Dog_2'] = { 'options':   { 'p_idx':0,
-                                     'features': ['c1', 'c2'],
-                                   'clip_c2': False},
-                    'classifier_name': 'random_forest'
+                                     'features': ['c1'],
+                                     'clip_c2': False},
+                    'classifier_name': 'select_lda_kbest_lda'
                   }
 
 params['Dog_3'] = { 'options':   { 'p_idx':0,
-                                     'features': ['c1', 'c2'],
-                                   'clip_c2': False},
-                    'classifier_name': 'random_forest'
+                                     'features': ['c1'],
+                                     'clip_c2': False},
+                    'classifier_name': 'select_lda_kbest_lda'
                   }
+
 
 
 params['Dog_4'] = { 'options':   { 'p_idx':0,
-                                     'features': ['hurst', 'c2'],
-                                   'clip_c2': False},
-                    'classifier_name': 'random_forest'
+                                     'features': ['c1'],
+                                     'clip_c2': False},
+                    'classifier_name': 'select_lda_kbest_lda'
                   }
 
 
-params['Dog_5'] = { 'options':   { 'p_idx':4,
-                                     'features': ['c1', 'c2', 'c3'],
-                                   'clip_c2': False},
-                    'classifier_name': 'random_forest'
+
+params['Dog_5'] = { 'options':   { 'p_idx':0,
+                                     'features': ['c1'],
+                                     'clip_c2': False},
+                    'classifier_name': 'select_lda_kbest_lda'
                   }
+
 
 params['Patient_1'] = { 'options':   { 'p_idx':0,
-                                     'features': ['c1', 'c2'],
-                                   'clip_c2': False},
-                        'classifier_name': 'random_forest'
-                      }
+                                     'features': ['c1'],
+                                     'clip_c2': False},
+                    'classifier_name': 'select_lda_kbest_lda'
+                    }
+
 
 
 params['Patient_2'] = { 'options':   { 'p_idx':0,
-                                     'features': ['c1', 'c2'],
-                                   'clip_c2': False},
-                        'classifier_name': 'random_forest'
+                                     'features': ['c1'],
+                                     'clip_c2': False},
+                        'classifier_name': 'select_lda_kbest_lda'
                       }
 
+
+#-----------------------------------------------------------
+# Cross validation
+#-----------------------------------------------------------
+
+cv  = StratifiedShuffleSplit(n_splits     = N_SPLITS,
+                             test_size    = 0.25,
+                             random_state = random_state )
 
 #-----------------------------------------------------------
 # Run on test
@@ -85,8 +100,8 @@ if RUN_ON_TEST:
     for subject in cfg.subjects:
         print(subject, params[subject])
 
-        clf, fit_params = utils_classif.get_classifier(params[subject]['classifier_name'], 
-                                   None, None)
+        clf, fit_params = utils_classif.get_classifier(params[subject]['classifier_name'],
+                                        cv, None)
 
         X_train, y_train, _, _ = utils.load_classif_data(subject, params[subject]['options'])
 
@@ -110,7 +125,7 @@ if RUN_ON_TEST:
 
         df = pd.concat( [df, pd.DataFrame.from_dict(data_dict)], ignore_index  = True)
 
-        outfilename = os.path.join('submissions', 'two.csv')
+        outfilename = os.path.join('submissions', OUT_FILE)
 
         df.to_csv(outfilename, index=False)
 
@@ -120,13 +135,6 @@ if RUN_ON_TEST:
 #-----------------------------------------------------------
 
 else:
-    N_SPLITS = 5
-
-    cv  = StratifiedShuffleSplit(n_splits     = N_SPLITS, 
-                                 test_size    = 0.3, 
-                                 random_state = random_state )
-
-
     # Create CV iterators
     generators = {}
     for subject in cfg.subjects:
@@ -135,7 +143,7 @@ else:
         generators[subject] = gen
 
 
-    # Run 
+    # Run
     aucs     = []
     global_auc   = []
 
@@ -158,7 +166,7 @@ else:
             y_train = y[train_index]
             y_test  = y[test_index]
 
-            clf, fit_params = utils_classif.get_classifier(params[subject]['classifier_name'], 
+            clf, fit_params = utils_classif.get_classifier(params[subject]['classifier_name'],
                                                None, None)
 
 
@@ -175,4 +183,3 @@ else:
 
         aucs.append(auc_list)
         global_auc.append(roc_auc_score(y_test_all, y_scores_all))
-

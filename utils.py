@@ -5,6 +5,8 @@ import os
 from scipy.signal import welch
 import config as cfg
 import h5py
+from scipy.stats import linregress
+
 
 def get_scales(fs, min_f, max_f):
     """
@@ -12,9 +14,9 @@ def get_scales(fs, min_f, max_f):
     """
     f0 = (3.0/4.0)*fs
     j1 = int(np.ceil(np.log2(f0/max_f)))
-    j2 = int(np.ceil(np.log2(f0/min_f)))   
-    return j1, j2 
-    
+    j2 = int(np.ceil(np.log2(f0/min_f)))
+    return j1, j2
+
 
 def get_interictal_data(file_idx, subject):
     filename = subject + '_interictal_segment_%s.mat'%(str(file_idx).zfill(4))
@@ -96,7 +98,7 @@ def plot_cumulant_time_evolution(c1, c2, title = ''):
     plt.xlabel('sample')
     plt.ylabel('c1')
     plt.subplot(212)
-    plt.plot( np.arange(c2.shape[0]), c2, 'o-' )   
+    plt.plot( np.arange(c2.shape[0]), c2, 'o-' )
     plt.xlabel('sample')
     plt.ylabel('c2')
 
@@ -125,7 +127,7 @@ def load_classif_data(subject, options):
     n_preictal          = len(preictal_files_idx)
     n_channels          = cfg.info[subject]['n_channels']
 
-    n_features          = n_channels*len(features)  
+    n_features          = n_channels*len(features)
 
 
     # Load interictal data
@@ -177,7 +179,7 @@ def load_classif_data(subject, options):
     y_preictal = np.ones(n_preictal)
 
 
-    # Merge 
+    # Merge
     X = np.vstack((X_interictal, X_preictal))
     y = np.hstack((y_interictal, y_preictal))
 
@@ -194,7 +196,7 @@ def load_classif_test_data(subject, options, test_folder = None):
     test_files_idx  = cfg.info[subject]['test_files_idx']
     n_test          = len(test_files_idx)
     n_channels      = cfg.info[subject]['n_channels']
-    n_features      = n_channels*len(features)  
+    n_features      = n_channels*len(features)
 
 
     # Load interictal data
@@ -204,7 +206,7 @@ def load_classif_test_data(subject, options, test_folder = None):
         filename = 'cumulants_test_%d_p_%d.h5'%(file_idx, p_idx)
         filename = os.path.join('cumulant_features', subject, filename)
         if test_folder is not None:
-            filename = os.path.join(test_folder, filename)       
+            filename = os.path.join(test_folder, filename)
 
 
         with h5py.File(filename, "r") as file:
@@ -217,6 +219,111 @@ def load_classif_test_data(subject, options, test_folder = None):
                 temp = temp + (aux,)
 
             X[ii, :] = np.hstack(temp)
-
-
     return X
+
+
+
+def load_classif_data_2(subject, options, j1, j2):
+    """
+    Allow us to select scales.
+    """
+
+    # Index
+    ind_j1 = j1 - 1
+    ind_j2 = j2 - 1
+
+    # Setup
+    p_idx     = options['p_idx']
+    features  = options['features'] # e.g, ['c1', 'c2'], elements should be
+                                    # in ['hurst', 'c1', 'c2', 'c3', 'c4']
+
+    interictal_files_idx = cfg.info[subject]['interictal_files_idx']
+    preictal_files_idx   = cfg.info[subject]['preictal_files_idx']
+    n_interictal         = len(interictal_files_idx)
+    n_preictal           = len(preictal_files_idx)
+    n_channels           = cfg.info[subject]['n_channels']
+
+    n_features           = n_channels*len(features)
+
+    # Load interictal data
+    X_interictal = np.zeros((n_interictal, n_features))
+    sequence_interictal = np.zeros(n_interictal)
+
+    for ii, file_idx in enumerate(interictal_files_idx):
+        filename = 'cumulants_interictal_%d_p_%d.h5'%(file_idx, p_idx)
+        filename = os.path.join('cumulant_features_2', subject, filename)
+
+        with h5py.File(filename, "r") as file:
+            temp = ()
+            for feat in features:
+                if feat == 'hurst':
+                    aux = file[feat][:]
+
+                else:
+                    x_reg = np.arange(j1, j2+1)
+                    aux_j = file[feat+'j'][:]
+                    aux_j = aux_j[:, ind_j1:ind_j2+1]
+                    n_channels = aux_j.shape[0]
+                    aux  = np.zeros(n_channels)
+                    for ch in range(n_channels):
+                        y_reg = aux_j[ch, :]
+                        slope, intercept, _, _, _ = linregress(x_reg,y_reg)
+                        aux[ch] = np.log2(np.exp(1))*slope
+
+
+                # clip c2
+                if feat =='c2' and options['clip_c2']:
+                    aux = aux.clip(max = 0)
+
+                temp = temp + (aux,)
+
+
+            X_interictal[ii, :] = np.hstack(temp)
+            sequence_interictal[ii] = file['sequence'].value
+
+    y_interictal = np.zeros(n_interictal)
+
+    # Load preictal data
+    X_preictal = np.zeros((n_preictal, n_features))
+    sequence_preictal = np.zeros(n_preictal)
+
+    for ii, file_idx in enumerate(preictal_files_idx):
+        filename = 'cumulants_preictal_%d_p_%d.h5'%(file_idx, p_idx)
+        filename = os.path.join('cumulant_features_2', subject ,filename)
+
+        with h5py.File(filename, "r") as file:
+            temp = ()
+            for feat in features:
+                if feat == 'hurst':
+                    aux = file[feat][:]
+
+                else:
+                    x_reg = np.arange(j1, j2+1)
+                    aux_j = file[feat+'j'][:]
+                    aux_j = aux_j[:, ind_j1:ind_j2+1]
+                    n_channels = aux_j.shape[0]
+                    aux  = np.zeros(n_channels)
+                    for ch in range(n_channels):
+                        y_reg = aux_j[ch, :]
+                        slope, intercept, _, _, _ = linregress(x_reg,y_reg)
+                        aux[ch] = np.log2(np.exp(1))*slope
+
+
+                # clip c2
+                if feat =='c2' and options['clip_c2']:
+                    aux = aux.clip(max = 0)
+
+                temp = temp + (aux,)
+
+            X_preictal[ii, :] = np.hstack(temp)
+            sequence_preictal[ii] = file['sequence'].value
+
+    y_preictal = np.ones(n_preictal)
+
+
+    # Merge
+    X = np.vstack((X_interictal, X_preictal))
+    y = np.hstack((y_interictal, y_preictal))
+
+
+    return X, y, sequence_interictal, sequence_preictal
