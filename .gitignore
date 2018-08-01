@@ -1,4 +1,4 @@
-/prediction_data
-/cumulant_features
-/cumulant_features_2
+kaggle/prediction_data
+kaggle/cumulant_features
+kaggle/cumulant_features_2
 *.pyc
