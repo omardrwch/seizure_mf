@@ -5,7 +5,7 @@ import numpy as np
 # Information about subjects and files
 #--------------------------------------------------------------------
 
-subjects = ['Dog_1', 'Dog_2', 'Dog_3', 'Dog_4', 'Dog_5', 'Patient_1', 'Patient_2']
+subjects = ['Dog_4', 'Dog_5', 'Patient_1', 'Patient_2'] # 'Dog_1', 'Dog_2', 'Dog_3', 
 
 info = {}
 

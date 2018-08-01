@@ -12,31 +12,25 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 N_JOBS = 4
 
 
-CONDITIONS = ['test'] # ['interictal', 'preictal']
+CONDITIONS = ['interictal', 'preictal'] #['test'] 
 test_data_loc = '/volatile/omar/Documents/projects/seizure_detection'
 
 
-def extract_features(args):
+def extract_baseline_features(args):
     """
     args = tuple containing: 
         file_idx : index of the file to be analyzed
         condition: 'interictal', 'preictal' or 'test'
         subject  : 'Dog_1', 'Dog_2' etc 
         n_channels: int config.info[subject]['n_channels']
-        params   : dictionary config.mf_params[subject]
-        p_info   : element of config.p_list, a tuple containing (p, p_index), the value of 
-                   p and its index
     """
 
     global test_data_loc
 
-    file_idx, condition, subject, n_channels, params, p_info = args
+    file_idx, condition, subject, n_channels = args
 
     # try:
     if True:
-        p = p_info[0]
-        p_index = p_info[1]
-
         print("--- Analyzing file (%s, %s, %d)"%(subject, condition, file_idx))
 
         # Create MF object
@@ -104,9 +98,9 @@ def extract_features(args):
 
         # Save file
         if condition == 'test':
-            output_dir = os.path.join(test_data_loc, 'cumulant_features_2', subject)
+            output_dir = os.path.join(test_data_loc, 'baseline_features', subject)
         else:
-            output_dir = os.path.join(current_dir, 'cumulant_features_2', subject)
+            output_dir = os.path.join(current_dir, 'baseline_features', subject)
 
 
         if not os.path.exists(output_dir):
@@ -167,9 +161,9 @@ if __name__ == '__main__':
         file_idx, condition, subject, n_channels, params, p_info = args
 
         if condition == 'test':
-            output_dir = os.path.join(test_data_loc, 'cumulant_features_2', subject)
+            output_dir = os.path.join(test_data_loc, 'baseline_features', subject)
         else:
-            output_dir = os.path.join(current_dir, 'cumulant_features_2', subject)
+            output_dir = os.path.join(current_dir, 'baseline_features', subject)
         output_filename = ('cumulants_%s_%d_p_%d.h5'%(condition, file_idx, p_info[1]))
         output_filename = os.path.join(output_dir, output_filename)
         if os.path.isfile(output_filename):
