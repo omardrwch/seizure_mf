@@ -13,6 +13,9 @@ from mne_features.feature_extraction import FeatureExtractor
 N_SPLITS = 3
 scoring = 'roc_auc'
 
+NOISE_STD_0 = 2.0
+NOISE_STD_1 = 2.0
+
 #----------------------------------------------------------------
 # Select sets and labels
 #----------------------------------------------------------------
@@ -23,9 +26,9 @@ files_per_set = 100
 #----------------------------------------------------------------
 # Create MF object for feature extraction
 #----------------------------------------------------------------
-p = 2.0  # value for p-leaders
+p = 8.0  # value for p-leaders
 mfa = mf.MFA(**utils.mf_params)
-mfa.n_cumul = 1
+mfa.n_cumul = 2
 mfa.p = p
 
 #----------------------------------------------------------------
@@ -44,6 +47,13 @@ for set_name in sets:
     for index in range(1, files_per_set+1):
         data = utils.read_file(set_name, index)
 
+        if labels[set_name] == 0:
+            data = data/data.std() + np.random.normal(loc = 0, scale = NOISE_STD_0, size=len(data))
+
+        else:
+            data = data/data.std() + np.random.normal(loc = 0, scale = NOISE_STD_1, size=len(data))
+      
+
         mfa.analyze(data)
         X[count, :] = mfa.cumulants.log_cumulants
         y[count]    = labels[set_name]
@@ -58,7 +68,7 @@ for set_name in sets:
 # Run classification
 #----------------------------------------------------------------
 
-clf = RandomForestClassifier(n_estimators=100, max_depth=4, random_state=42)
+clf = RandomForestClassifier(n_estimators=300, max_depth=4, random_state=42)
 skf = StratifiedKFold(n_splits=N_SPLITS, random_state=42)
 
 scores = cross_val_score(clf, X, y, cv=skf, scoring = scoring)
@@ -72,7 +82,7 @@ print("Feature importances = ", clf.feature_importances_)
 #----------------------------------------------------------------
 # Run classification baseline
 #----------------------------------------------------------------
-selected_funcs = 'ptp_amp'#['line_length', 'kurtosis', 'ptp_amp', 'skewness']
+selected_funcs = ['line_length', 'kurtosis', 'ptp_amp', 'skewness']
 
 pipe = Pipeline([('fe', FeatureExtractor(sfreq=utils.s_freq,
                                          selected_funcs=selected_funcs)),
