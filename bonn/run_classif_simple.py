@@ -23,9 +23,9 @@ files_per_set = 100
 #----------------------------------------------------------------
 # Create MF object for feature extraction
 #----------------------------------------------------------------
-p = 8.0  # value for p-leaders
+p = 2.0  # value for p-leaders
 mfa = mf.MFA(**utils.mf_params)
-mfa.n_cumul = 2
+mfa.n_cumul = 1
 mfa.p = p
 
 #----------------------------------------------------------------
@@ -81,3 +81,15 @@ pipe = Pipeline([('fe', FeatureExtractor(sfreq=utils.s_freq,
 
 scores = cross_val_score(pipe, all_data, y, cv=skf, scoring = scoring)
 print('[baseline] Cross-validation ' + scoring + ' score = %1.3f (+/- %1.5f)' % (np.mean(scores), np.std(scores)))
+
+#----------------------------------------------------------------
+# Run classification combined
+#----------------------------------------------------------------
+fe = FeatureExtractor(sfreq=utils.s_freq, selected_funcs=selected_funcs)
+X_baseline = fe.fit_transform(all_data)
+
+
+all_X = np.hstack((X, X_baseline))
+
+scores = cross_val_score(clf, all_X, y, cv=skf, scoring = scoring)
+print('[combined] Cross-validation ' + scoring + ' score = %1.3f (+/- %1.5f)' % (np.mean(scores), np.std(scores)))

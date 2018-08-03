@@ -64,3 +64,9 @@ print('c1 ictal: %0.5f +- %0.5f'%(c1_ictal.mean(), c1_ictal.std()))
 print("----")
 print('c2 healthy: %0.5f +- %0.5f'%(c2_healthy.mean(), c2_healthy.std()))
 print('c2 ictal: %0.5f +- %0.5f'%(c2_ictal.mean(), c2_ictal.std()))
+
+
+plt.figure()
+plt.plot(c1_healthy, c2_healthy, 'bo')
+plt.plot(c1_ictal, c2_ictal, 'ro')
+plt.show()
