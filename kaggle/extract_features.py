@@ -12,7 +12,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 N_JOBS = 4
 
 
-CONDITIONS = ['test'] # ['interictal', 'preictal']
+CONDITIONS = ['interictal', 'preictal']
 test_data_loc = '/volatile/omar/Documents/projects/seizure_detection'
 
 

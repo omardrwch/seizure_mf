@@ -16,15 +16,15 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # ALL_FILES = True
 
 
-subject               = 'Dog_1'
+subject               = 'Dog_4'
 interictal_files_idx  = np.arange(15, 30)
-preictal_files_idx    = list(range(1,19))
+preictal_files_idx    = list(range(1,50))
 n_channels            = 15  # 15 for people, 16 for dogs
 ALL_FILES = True
 
 s_freq  = 399.609756
-fmin    = 1
-fmax    = 10  
+fmin    = 0.2
+fmax    = 2 
 j1,j2   = utils.get_scales(s_freq, fmin, fmax)
 # j1 = 7
 # j2 = 12

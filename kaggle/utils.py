@@ -104,13 +104,23 @@ def plot_cumulant_time_evolution(c1, c2, title = ''):
 
 
 
-def plot_spectrum(signal, fs, nperseg = 1024):
-    f, Pxx_spec = welch(signal, fs, nperseg=nperseg, scaling='spectrum')
+def plot_psd(signal, fs, name = '', f1 = None, f2 = None, nperseg = 1024):
+    f, px = welch(signal, fs, scaling = 'spectrum', nperseg=nperseg)
     plt.figure()
-    plt.loglog(f, np.sqrt(Pxx_spec))
-    plt.xlabel(' (log) frequency [Hz]')
-    plt.ylabel(' (log) Power [V RMS]')
-
+    plt.loglog(f, px)
+    plt.xlabel('frequency [Hz]')
+    plt.ylabel('Power spectrum - ' + name)
+    if (f1 is not None) and (f2 is not None):
+        ff = f[ np.logical_and(f>=f1, f<=f2) ].copy()
+        PP = px[ np.logical_and(f>=f1, f<=f2) ].copy()
+        log_ff = np.log10(ff)
+        log_PP = np.log10(PP)
+        slope, intercept, r_value, p_value, std_err = linregress(log_ff,log_PP)
+        log_PP_fit = slope*log_ff + intercept
+        PP_fit    =  10.0**(log_PP_fit)
+        plt.loglog(ff, PP_fit, label = 'beta=%f'%(slope))
+        plt.legend()
+    plt.grid()
 
 
 
@@ -327,3 +337,57 @@ def load_classif_data_2(subject, options, j1, j2):
 
 
     return X, y, sequence_interictal, sequence_preictal
+
+
+
+def load_cumulant(subject, condition, cumulant, options, j1, j2):
+    """
+    cumulant: 'c1', 'c2', 'c3' or 'c4'
+    """
+
+    # Index
+    ind_j1 = j1 - 1
+    ind_j2 = j2 - 1
+    x_reg = np.arange(j1, j2+1)
+
+    # Setup
+    p_idx     = options['p_idx']
+
+    files_idx   = cfg.info[subject][condition+'_files_idx']
+    n_files     = len(files_idx)
+    n_channels  = cfg.info[subject]['n_channels']
+
+    # Load data
+    cumulants = None
+    log_cumulants = None
+    # log_cumulants_debug = None
+
+    sequence = np.zeros(n_files)
+
+    for ii, file_idx in enumerate(files_idx):
+        filename = 'cumulants_interictal_%d_p_%d.h5'%(file_idx, p_idx)
+        filename = os.path.join('cumulant_features_2', subject, filename)
+
+        with h5py.File(filename, "r") as file:
+            sequence[ii] = file['sequence'].value
+
+            cumul     = file[cumulant+'j'][:]
+            # log_cumul_debug = file[cumulant][:]
+            n_channels = cumul.shape[0]
+            log_cumul  = np.zeros(n_channels)
+            for ch in range(n_channels):
+                y_reg = cumul[ch, ind_j1:ind_j2+1]
+                slope, intercept, _, _, _ = linregress(x_reg,y_reg)
+                log_cumul[ch] = np.log2(np.exp(1))*slope          
+
+        if ii == 0:
+            cumulants = np.zeros((n_files, cumul.shape[0], cumul.shape[1])) # (file, sensor, nj)
+            log_cumulants = np.zeros((n_files, len(log_cumul))) # (file, sensor)
+            # log_cumulants_debug = np.zeros((n_files, len(log_cumul))) # (file, sensor)
+
+
+        cumulants[ii,:,:] = cumul
+        log_cumulants[ii,:] = log_cumul
+        # log_cumulants_debug[ii, :] = log_cumul_debug
+
+    return cumulants, log_cumulants, sequence #, log_cumulants_debug
