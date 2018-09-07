@@ -29,7 +29,7 @@ mf_params = {'wt_name': 'db3',
              'j2': 9,
              'q':  np.array([2]),
              'n_cumul': 2,
-             'gamint': 1.5,
+             'gamint': 1.55,
              'wtype': 0,
              'verbose': 1
              }   # value of p need to be defined

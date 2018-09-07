@@ -10,14 +10,14 @@ from sklearn.pipeline import Pipeline
 
 from mne_features.feature_extraction import FeatureExtractor
 
-N_SPLITS = 3
-scoring = 'roc_auc'
+N_SPLITS = 5
+scoring = 'accuracy'
 
 #----------------------------------------------------------------
 # Select sets and labels
 #----------------------------------------------------------------
-sets = ['A', 'B', 'C', 'D', 'E']
-labels = {'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E': 1}
+sets = ['C', 'D', 'E']
+labels = {'C': 0, 'D': 0, 'E': 1}
 files_per_set = 100
 
 #----------------------------------------------------------------
@@ -25,7 +25,7 @@ files_per_set = 100
 #----------------------------------------------------------------
 p = 2.0  # value for p-leaders
 mfa = mf.MFA(**utils.mf_params)
-mfa.n_cumul = 1
+mfa.n_cumul = 2
 mfa.p = p
 
 #----------------------------------------------------------------
@@ -72,7 +72,7 @@ print("Feature importances = ", clf.feature_importances_)
 #----------------------------------------------------------------
 # Run classification baseline
 #----------------------------------------------------------------
-selected_funcs = 'ptp_amp'#['line_length', 'kurtosis', 'ptp_amp', 'skewness']
+selected_funcs = ['ptp_amp']#['line_length', 'kurtosis', 'ptp_amp', 'skewness']
 
 pipe = Pipeline([('fe', FeatureExtractor(sfreq=utils.s_freq,
                                          selected_funcs=selected_funcs)),

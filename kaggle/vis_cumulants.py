@@ -14,7 +14,7 @@ from scipy.stats import linregress
 #--------------------------------------------------------------------
 # Choose subject and options
 #--------------------------------------------------------------------
-subject = 'Patient_2'
+subject = 'Dog_2'
 options = {'p_idx': 2}
 fmin    = 0.2
 fmax    = 2

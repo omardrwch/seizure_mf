@@ -8,6 +8,11 @@ import mfanalysis as mf
 import matplotlib.pyplot as plt
 import utils
 
+from pylab import rcParams
+rcParams['figure.figsize'] = 12, 8
+rcParams['mathtext.default'] = 'regular'
+rcParams['font.size'] = 20
+
 N_SPLITS = 3
 scoring = 'roc_auc'
 
@@ -21,7 +26,7 @@ files_per_set = 100
 #----------------------------------------------------------------
 # Create MF object for feature extraction
 #----------------------------------------------------------------
-p = np.inf  # value for p-leaders
+p = 2  # value for p-leaders
 mfa = mf.MFA(**utils.mf_params)
 mfa.n_cumul = 2
 mfa.p = p
@@ -67,6 +72,10 @@ print('c2 ictal: %0.5f +- %0.5f'%(c2_ictal.mean(), c2_ictal.std()))
 
 
 plt.figure()
-plt.plot(c1_healthy, c2_healthy, 'bo')
-plt.plot(c1_ictal, c2_ictal, 'ro')
+plt.plot(c1_healthy, c2_healthy, 'bo', label = 'normal')
+plt.plot(c1_ictal, c2_ictal, 'ro', label = 'seizure')
+plt.xlabel('$c_1$')
+plt.ylabel('$c_2$')
+plt.legend()
+plt.ylim([-0.2, 0.1])
 plt.show()
